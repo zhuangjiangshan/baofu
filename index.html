@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>是男人就下100层｜暴富版</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="page-shell">
+    <section class="game-card">
+      <div class="top-title">
+        <div>
+          <p class="eyebrow">Stock Market Mini Game</p>
+          <h1>是男人就下100层｜暴富版</h1>
+        </div>
+        <button id="muteBtn" class="icon-btn" aria-label="声音开关">🔊</button>
+      </div>
+
+      <div class="hud" aria-label="游戏状态">
+        <div class="hud-item"><span>层数</span><strong id="floorText">0 / 100</strong></div>
+        <div class="hud-item"><span>资产</span><strong id="moneyText">¥10,000</strong></div>
+        <div class="hud-item"><span>命</span><strong id="hpText">♥♥♥</strong></div>
+        <div class="hud-item"><span>纪录</span><strong id="bestText">0层</strong></div>
+      </div>
+
+      <div class="canvas-wrap">
+        <canvas id="gameCanvas" width="480" height="720" aria-label="暴富下100层小游戏画布"></canvas>
+
+        <div id="panel" class="panel show">
+          <p class="panel-kicker">基金涨了？还是直接破产？</p>
+          <h2>暴富下100层</h2>
+          <p class="panel-desc">
+            控制头顶写着「暴富」的男人一路向下。踩住楼板，吃股市道具，扛过基金亏损、暴雷、破产，冲到第100层。
+          </p>
+          <div class="rule-grid">
+            <span>← / A：左移</span>
+            <span>→ / D：右移</span>
+            <span>空格：开始/暂停</span>
+            <span>手机：底部按钮</span>
+          </div>
+          <button id="startBtn" class="primary-btn">开始下100层</button>
+        </div>
+      </div>
+
+      <div class="touch-controls" aria-label="手机操作按钮">
+        <button id="leftBtn">← 左移</button>
+        <button id="pauseBtn">暂停</button>
+        <button id="rightBtn">右移 →</button>
+      </div>
+
+      <p class="footer-note">玩法：红色多为上涨/奖励，绿色多为亏损/风险；「加杠杆」会让收益和亏损都翻倍。</p>
+    </section>
+  </main>
+
+  <script src="game.js"></script>
+</body>
+</html>
