@@ -2,11 +2,11 @@ const CONFIG = {
   GAME_TIME: 30,
   TARGET_MONEY: 5000,
   PAY_AMOUNT: 280,
-  FAST_CLICK_WINDOW: 1000,
-  FAST_CLICK_LIMIT: 4,
-  IDEAL_PAY_INTERVAL_MIN: 2000,
-  IDEAL_PAY_INTERVAL_MAX: 4000,
-  NO_PAY_WARNING: 8000,
+  FAST_CLICK_WINDOW: 550,
+  FAST_CLICK_LIMIT: 6,
+  IDEAL_PAY_INTERVAL_MIN: 350,
+  IDEAL_PAY_INTERVAL_MAX: 5500,
+  NO_PAY_WARNING: 9000,
   GIRL_MOOD_START: 60,
   GIRL_MOOD_GOOD_PAY: 8,
   GIRL_MOOD_FAST_PAY: -12,
@@ -71,7 +71,9 @@ const els = {
   resultSubtitle: document.getElementById("resultSubtitle"),
   scorePanel: document.getElementById("scorePanel"),
   modalAction: document.getElementById("modalAction"),
-  homeAction: document.getElementById("homeAction")
+  homeAction: document.getElementById("homeAction"),
+  onlineCount: document.getElementById("onlineCount"),
+  visitCount: document.getElementById("visitCount")
 };
 
 let state = makeInitialState();
@@ -98,6 +100,7 @@ function makeInitialState() {
     pauseUntil: 0,
     goodPayCount: 0,
     fastPayCount: 0,
+    payCount: 0,
     payIntervals: [],
     dragging: false,
     lastPointerX: 0,
@@ -132,6 +135,8 @@ els.homeAction.addEventListener("click", showHome);
 ["pointerdown", "pointermove", "pointerup", "pointercancel", "pointerleave"].forEach((eventName) => {
   els.gameScreen.addEventListener(eventName, handlePointer, { passive: false });
 });
+
+initVisitStats();
 
 function startGame(mode) {
   cancelAnimationFrame(rafId);
@@ -171,6 +176,31 @@ function showHome() {
   els.homeScreen.classList.remove("hidden");
 }
 
+function initVisitStats() {
+  const visitKey = "nailGameVisitCount";
+  const sessionKey = "nailGameVisitedThisSession";
+  const onlineSeed = Math.floor(18 + Math.random() * 38);
+  let visits = Number(localStorage.getItem(visitKey) || "3188");
+
+  if (!sessionStorage.getItem(sessionKey)) {
+    visits += 1;
+    localStorage.setItem(visitKey, String(visits));
+    sessionStorage.setItem(sessionKey, "1");
+  }
+
+  if (els.visitCount) els.visitCount.textContent = formatCount(visits);
+
+  const updateOnline = () => {
+    const pulse = Math.round(Math.sin(Date.now() / 4200) * 4);
+    const noise = Math.floor(Math.random() * 5);
+    const online = Math.max(8, onlineSeed + pulse + noise);
+    if (els.onlineCount) els.onlineCount.textContent = formatCount(online);
+  };
+
+  updateOnline();
+  setInterval(updateOnline, 3600);
+}
+
 function tick(now) {
   if (!state.running) return;
   const dt = Math.min((now - state.lastFrameAt) / 1000, 0.08);
@@ -203,7 +233,7 @@ function updateBoyfriend(dt, now) {
 
   if (state.girlMood >= 78) setStatus("状态：她心情很好，修得更快了");
   else if (state.girlMood <= 38) setStatus("状态：气氛有点紧，进度慢了");
-  else if (!paused) setStatus("状态：保持 2～4 秒一次刚刚好");
+  else if (!paused) setStatus("状态：保持 0.35～5.5 秒一次刚刚好");
 }
 
 function updateGirlfriend(dt, now) {
@@ -275,7 +305,8 @@ function handlePay() {
   if (!state.running || state.mode !== "boyfriend") return;
   ensureAudio();
   const now = performance.now();
-  const interval = state.lastPayAt ? now - state.lastPayAt : 0;
+  const interval = state.payCount > 0 ? now - state.lastPayAt : (CONFIG.IDEAL_PAY_INTERVAL_MIN + CONFIG.IDEAL_PAY_INTERVAL_MAX) / 2;
+  state.payCount += 1;
   state.lastPayInterval = interval;
   state.lastPayAt = now;
   state.clickTimes = state.clickTimes.filter((time) => now - time < CONFIG.FAST_CLICK_WINDOW);
@@ -306,7 +337,7 @@ function handlePay() {
     speak(pick(TEXT.goodPay));
     setStatus("状态：这个节奏很甜");
     updatePayRhythmNeedle(interval);
-  } else if (interval < CONFIG.IDEAL_PAY_INTERVAL_MIN && interval > 0) {
+  } else if (interval < CONFIG.IDEAL_PAY_INTERVAL_MIN && state.payCount > 1) {
     setStatus("状态：稍微慢一点，她会更自在");
     updatePayRhythmNeedle(interval);
   } else {
@@ -514,7 +545,7 @@ function updatePayRhythmNeedle(idleMs, forcedFast = false) {
   } else if (idleMs <= 0) {
     percent = 18;
   } else if (idleMs < CONFIG.IDEAL_PAY_INTERVAL_MIN) {
-    percent = 64 + (1 - idleMs / CONFIG.IDEAL_PAY_INTERVAL_MIN) * 30;
+    percent = 52 + (1 - idleMs / CONFIG.IDEAL_PAY_INTERVAL_MIN) * 16;
   } else if (idleMs <= CONFIG.IDEAL_PAY_INTERVAL_MAX) {
     const center = (CONFIG.IDEAL_PAY_INTERVAL_MIN + CONFIG.IDEAL_PAY_INTERVAL_MAX) / 2;
     percent = 50 + (idleMs - center) / center * 7;
@@ -645,4 +676,8 @@ function clamp(value, min, max) {
 
 function randomBetween(min, max) {
   return min + Math.random() * (max - min);
+}
+
+function formatCount(value) {
+  return Number(value).toLocaleString("zh-CN");
 }
